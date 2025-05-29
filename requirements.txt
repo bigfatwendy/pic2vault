@@ -1,0 +1,12 @@
+# GUI framework
+PyQt5>=5.15.9
+
+# Image handling
+Pillow>=10.0.0
+
+# Metadata manipulation
+exif>=1.6.0
+piexif>=1.1.3
+
+# (Optional) Progress bars, typing, CLI utils, etc.
+tqdm>=4.66.0
