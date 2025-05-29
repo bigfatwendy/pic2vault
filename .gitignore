@@ -2,6 +2,7 @@
 ~/.git-tools/*
 .git-helper.sh
 .env
+venv/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
