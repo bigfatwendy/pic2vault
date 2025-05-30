@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QMainWindow, QLabel, QPushButton, QFileDialog, QVBoxLayout,
+    QMainWindow, QPushButton, QFileDialog, QVBoxLayout,
     QWidget, QHBoxLayout, QLineEdit, QTextEdit, QListWidget, QListWidgetItem,
     QScrollArea, QFrame, QSplitter
 )
@@ -7,6 +7,7 @@ from PyQt5.QtGui import QPixmap, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
 from PIL import Image
 import os
+import cv2
 
 from metadata.metadata_handler import set_exif_data, read_exif_data
 from scanner.scan_interface import scan_to_file
@@ -33,7 +34,7 @@ class MainWindow(QMainWindow):
         self.staging_scroll.setWidget(self.staging_container)
         self.staging_scroll.setFrameShape(QFrame.StyledPanel)
 
-        self.clear_staging_btn = QPushButton("🧹 Clear Staging Area")
+        self.clear_staging_btn = QPushButton("🪹 Clear Staging Area")
         self.clear_staging_btn.clicked.connect(self.clear_staging)
 
         # ==== LEFT PANEL: Image Gallery ====
@@ -60,9 +61,8 @@ class MainWindow(QMainWindow):
         image_layout.addWidget(self.image_label)
         image_preview_container.setLayout(image_layout)
 
-
         # ==== RIGHT PANEL: Metadata Form ====
-        self.scan_button = QPushButton("📠 Scan Photo")
+        self.scan_button = QPushButton("📰 Scan Photo")
         self.scan_button.clicked.connect(self.scan_and_load)
 
         self.meta_title = QLineEdit()
@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
         splitter.addWidget(gallery_widget)
         splitter.addWidget(image_preview_container)
         splitter.addWidget(form_widget)
-        splitter.setSizes([150, 600, 250])  # Initial layout size
+        splitter.setSizes([150, 600, 250])
 
         # ==== Final Main Layout ====
         main_layout = QVBoxLayout()
@@ -150,8 +150,7 @@ class MainWindow(QMainWindow):
     def load_from_gallery(self, item):
         path = item.data(Qt.UserRole)
         if path:
-            pixmap = QPixmap(path)
-            self.image_label.setPixmap(pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio))
+            self.image_label.load_cv_image(path)
             self.current_image_path = path
             self.staged_path = None
             self.statusBar().showMessage(f"Loaded {os.path.basename(path)}")
@@ -184,7 +183,7 @@ class MainWindow(QMainWindow):
 
             self.statusBar().showMessage(f"Saved & moved: {filename}")
             self.current_image_path = None
-            self.image_label.setPixmap(QPixmap())  # ✅ clear image properly
+            self.image_label.load_cv_image(None)
             self.refresh_staging_area()
 
             self.meta_title.clear()
@@ -196,8 +195,7 @@ class MainWindow(QMainWindow):
     def scan_and_load(self):
         path = scan_to_file()
         if path:
-            pixmap = QPixmap(path)
-            self.image_label.setPixmap(pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio))
+            self.image_label.load_cv_image(path)
             self.current_image_path = path
             self.staged_path = path
             self.statusBar().showMessage(f"Scanned image loaded: {os.path.basename(path)}")
@@ -225,8 +223,7 @@ class MainWindow(QMainWindow):
                 self.staging_layout.addWidget(btn)
 
     def load_staged_image(self, path):
-        pixmap = QPixmap(path)
-        self.image_label.setPixmap(pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio))
+        self.image_label.load_cv_image(path)
         self.current_image_path = path
         self.staged_path = path
         self.statusBar().showMessage(f"Staged image loaded: {os.path.basename(path)}")
