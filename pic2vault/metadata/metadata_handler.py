@@ -2,6 +2,7 @@ import piexif
 from PIL import Image
 from geopy.geocoders import Nominatim
 from datetime import datetime
+Image.MAX_IMAGE_PIXELS = None
 
 def deg_to_dms_rational(deg_float):
     """Convert decimal degrees to degrees/minutes/seconds tuple"""

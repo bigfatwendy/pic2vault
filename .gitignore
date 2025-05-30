@@ -3,6 +3,7 @@
 .git-helper.sh
 .env
 venv/
+scans/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
