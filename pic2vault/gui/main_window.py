@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
         # === Panels ===
         self.staging_panel = StagingPanel(self)
         self.staging_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.staging_panel.setMaximumHeight(180)
+        self.staging_panel.setMaximumHeight(190)
 
         self.gallery_panel = GalleryPanel(self)
         self.image_display_panel = ImageDisplayPanel(self)

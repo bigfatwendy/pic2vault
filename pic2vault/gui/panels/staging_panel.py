@@ -2,16 +2,24 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QFrame
 )
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap, QIcon, QImage
 from PIL import Image
 import os
+from scanner.scan_interface import scan_to_file
+
+class ScanThread(QThread):
+    finished = pyqtSignal(str)
+
+    def run(self):
+        result_path = scan_to_file()
+        self.finished.emit(result_path if result_path else "")
 
 class StagingPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.current_staging_dir = "scans"
+        self.current_staging_dir = "scans/crops"
 
         # Layouts
         self.staging_layout = QHBoxLayout()
@@ -25,14 +33,21 @@ class StagingPanel(QWidget):
         self.staging_scroll.setFrameShape(QFrame.StyledPanel)
 
         self.clear_button = QPushButton("🧹 Clear Staging Area")
+        self.clear_button.setFixedHeight(30)
         self.clear_button.clicked.connect(self.clear_staging)
 
         self.swap_button = QPushButton("🔁 Swap Scans/Crops")
+        self.swap_button.setFixedHeight(30)
         self.swap_button.clicked.connect(self.swap_staging_directory)
+
+        self.scan_button = QPushButton("📠 Scan")
+        self.scan_button.setFixedHeight(30)
+        self.scan_button.clicked.connect(self.start_scan)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.clear_button)
         button_layout.addWidget(self.swap_button)
+        button_layout.addWidget(self.scan_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.staging_scroll)
@@ -40,6 +55,23 @@ class StagingPanel(QWidget):
         self.setLayout(layout)
 
         self.refresh_staging_area()
+
+    def start_scan(self):
+        self.scan_button.setText("📠 Scanning...")
+        self.scan_button.setStyleSheet("background-color: orange")
+        self.scan_button.setEnabled(False)
+
+        self.scan_thread = ScanThread()
+        self.scan_thread.finished.connect(self.finish_scan)
+        self.scan_thread.start()
+
+    def finish_scan(self, path):
+        self.scan_button.setText("📠 Scan")
+        self.scan_button.setStyleSheet("")
+        self.scan_button.setEnabled(True)
+        if path:
+            self.refresh_staging_area()
+            self.parent.statusBar().showMessage(f"Scan complete: {os.path.basename(path)}")
 
     def make_thumbnail(self, path, size=(100, 100)):
         try:

@@ -1,8 +1,8 @@
 import cv2
 import os
 import numpy as np
+import time
 from sklearn.cluster import KMeans
-
 
 def remove_bg_border(image, bg_color, threshold=40):
     diff = np.linalg.norm(image.astype(np.int16) - bg_color.astype(np.int16), axis=2)
@@ -79,6 +79,7 @@ def auto_crop_photos(scan_path, output_dir="scans/crops", debug=False):
     overlay = img.copy()
     cropped_paths = []
 
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
     for i, cnt in enumerate(contours):
         if len(cnt) >= 3:
             rect = cv2.minAreaRect(cnt)
@@ -93,7 +94,7 @@ def auto_crop_photos(scan_path, output_dir="scans/crops", debug=False):
                 warped = cv2.warpPerspective(img, M, (width, height))
                 cleaned = trim_border_from_crop(warped, bg_color)
 
-                crop_path = os.path.join(output_dir, f"photo_{i+1}.jpg")
+                crop_path = os.path.join(output_dir, f"photo_{timestamp}_{i+1}.jpg")
                 cv2.imwrite(crop_path, cleaned)
                 cropped_paths.append(crop_path)
 

@@ -31,6 +31,14 @@ class ZoomableImageView(QGraphicsView):
         self._fit_to_view = fit_to_view
         self.display_zoomed_image()
 
+    def load_cv_array(self, img_array, fit_to_view=True):
+        if img_array is None:
+            return
+        self._original_cv_img = img_array
+        self._zoom = 1.0
+        self._fit_to_view = fit_to_view
+        self.display_zoomed_image()
+
     def display_zoomed_image(self):
         if self._original_cv_img is None:
             return
