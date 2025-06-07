@@ -17,8 +17,9 @@ class ZoomableImageView(QGraphicsView):
         self._zoom = 1.0
         self._pan = False
         self._start_pos = None
+        self._fit_to_view = True
 
-    def load_cv_image(self, path):
+    def load_cv_image(self, path, fit_to_view=True):
         img = cv2.imread(path, cv2.IMREAD_COLOR)
         if img is None:
             print("Failed to load image:", path)
@@ -27,13 +28,19 @@ class ZoomableImageView(QGraphicsView):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self._original_cv_img = img
         self._zoom = 1.0
+        self._fit_to_view = fit_to_view
         self.display_zoomed_image()
 
     def display_zoomed_image(self):
         if self._original_cv_img is None:
             return
 
-        h, w, ch = self._original_cv_img.shape
+        if self._fit_to_view:
+            view_size = self.viewport().size()
+            h, w, _ = self._original_cv_img.shape
+            scale_h = view_size.height() / h
+            self._zoom = scale_h  # scale to 100% of height only
+
         zoomed_img = cv2.resize(self._original_cv_img, (0, 0), fx=self._zoom, fy=self._zoom, interpolation=cv2.INTER_LINEAR)
 
         height, width, channel = zoomed_img.shape
@@ -45,6 +52,7 @@ class ZoomableImageView(QGraphicsView):
         self._pixmap_item = QGraphicsPixmapItem(pixmap)
         self.scene().addItem(self._pixmap_item)
         self.setSceneRect(QRectF(pixmap.rect()))
+        self.centerOn(self._pixmap_item)
 
     def wheelEvent(self, event: QWheelEvent):
         if self._original_cv_img is None:
@@ -55,6 +63,7 @@ class ZoomableImageView(QGraphicsView):
 
         self._zoom *= factor
         self._zoom = max(0.1, min(self._zoom, 10.0))
+        self._fit_to_view = False
 
         self.display_zoomed_image()
 
@@ -81,5 +90,6 @@ class ZoomableImageView(QGraphicsView):
 
     def mouseDoubleClickEvent(self, event: QMouseEvent):
         self._zoom = 1.0
+        self._fit_to_view = True
         self.display_zoomed_image()
         self.centerOn(self._pixmap_item)

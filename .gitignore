@@ -4,8 +4,8 @@
 .env
 venv/
 scans/
-pic2vault/scanner/models
-pic2vault/scanner/u2net_archive
+pic2vault/scanner/models/
+pic2vault/scanner/u2net_archive/
 archive/
 
 
